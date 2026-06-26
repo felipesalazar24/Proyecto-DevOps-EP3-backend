@@ -1,0 +1,52 @@
+name: Pipeline Automatizado Backend EP3
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  despliegue-backend:
+    name: Build, Push y Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Descargar Codigo
+      uses: actions/checkout@v3
+
+    
+    - name: Autenticar en AWS Academy
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: us-east-1,
+
+    
+    - name: Login en Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    
+    - name: Compilar y Subir Backend a ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: tienda-backend
+        IMAGE_TAG: latest
+      run: 
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG,
+
+    
+    - name: Conectar con Cluster EKS
+      run: |
+        aws eks update-kubeconfig --name devopseks --region us-east-1,
+
+    
+    - name: Aplicar Cambios en Kubernetes
+      run: 
+        kubectl apply -f ./k8s/backend-deployment.yaml -n tienda
+        kubectl rollout restart deployment tienda-backend -n tienda
+        kubectl rollout status deployment tienda-backend -n tienda
