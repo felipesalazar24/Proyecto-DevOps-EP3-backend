@@ -1,6 +1,6 @@
 # Proyecto-DevOps-EP3-backend
 
-## Tienda de Perritos - Capa de API Backend & Infraestructura de Persistencia (MySQL) ##
+# Tienda de Perritos - Capa de API Backend & Infraestructura de Persistencia (MySQL)
 
 Este repositorio contiene el código fuente, las configuraciones de contenerización y los manifiestos de orquestación para la capa de lógica de negocio y persistencia de datos de la plataforma **Tienda de Perritos**. El proyecto está diseñado bajo lineamientos estrictos de la metodología DevOps, implementando patrones de microservicios, seguridad avanzada en redes cloud y automatización CI/CD de nivel profesional.
 
