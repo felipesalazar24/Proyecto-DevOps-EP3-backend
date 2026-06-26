@@ -35,7 +35,7 @@ Toda la infraestructura de red fue provista mediante la plantilla de AWS CloudFo
 ```text
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # Pipeline de CI/CD automatizado en GitHub Actions
+│       └── deployment.yml          # Pipeline de CI/CD automatizado en GitHub Actions
 ├── backend/
 │   ├── app.js                  # Lógica principal de la API REST
 │   ├── package.json            # Dependencias del proyecto y scripts de ejecución
