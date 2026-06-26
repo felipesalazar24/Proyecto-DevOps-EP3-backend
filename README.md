@@ -1,12 +1,18 @@
 # Proyecto-DevOps-EP3-backend
 
+# Tienda de Perritos - Capa de API Backend & Infraestructura de Persistencia (MySQL)
+
+Este repositorio contiene el código fuente, las configuraciones de contenerización y los manifiestos de orquestación para la capa de lógica de negocio y persistencia de datos de la plataforma **Tienda de Perritos**. El proyecto está diseñado bajo lineamientos estrictos de la metodología DevOps, implementando patrones de microservicios, seguridad avanzada en redes cloud y automatización CI/CD de nivel profesional.
+
+---
+
 ## 1. Arquitectura Detallada del Sistema
 
 La capa de backend opera de forma desacoplada y asíncrona dentro del ecosistema, interactuando directamente con el motor de base de datos y respondiendo de manera eficiente a la capa de presentación.
 
 ### A. Componentes de Cómputo e Infraestructura (Kubernetes)
-* **API Microservicio (`tienda-backend`):** Desarrollado sobre un entorno de Node.js/Express (o la tecnología homóloga del proyecto). Expone una API RESTful encargada de procesar las transacciones y persistir el catálogo en la base de datos. Escucha nativamente en el puerto `3001`.
-* **Capa de Persistencia Relacional (`tienda-db`):** Motor de base de datos **MySQL 8.0**. Este componente se ejecuta de manera interna en el clúster con un almacenamiento persistente simulado y mapeado de forma lógica. Opera en el puerto estándar `3306`.
+* **API Microservicio (`tienda-backend`):** Desarrollado sobre Node.js utilizando Express. El punto de entrada y procesamiento de la lógica es el archivo `server.js`. Expone una API RESTful encargada de procesar las transacciones y persistir el catálogo en la base de datos. Escucha nativamente en el puerto `3001`.
+* **Capa de Persistencia Relacional (`tienda-db`):** Motor de base de datos **MySQL 8.0** levantado a partir de una imagen personalizada que ejecuta el script `db/init.sql` al arrancar para auto-generar las tablas del catálogo. Opera internamente en el puerto estándar `3306`.
 
 ### B. Nodos / Fargate / Capacity Providers
 Para el clúster maestro de Kubernetes (`devopseks`), la computación se administra bajo el modelo de **Nodos EC2 Administrados (EC2 Managed Node Groups)** en lugar de servidores Serverless como AWS Fargate. 
@@ -22,7 +28,7 @@ Toda la infraestructura de red fue provista mediante la plantilla de AWS CloudFo
   * El Backend solo procesa peticiones en el puerto `3001` orientadas desde el proxy o LoadBalancer del Frontend.
 
 ### D. Resiliencia, Disponibilidad y Alta Elasticidad
-* **Métricas de Hardware (Metrics Server):** El clúster monitorea constantemente los recursos mediante sondas integradas.
+* **Métricas de Hardware (Metrics Server):** El clúster monitorea constantemente los recursos mediante sondas de hardware integradas.
 * **Autoscaling Horizontal (HPA):** Se configuró el recurso `horizontalpodautoscaler` bajo la métrica de CPU. Si el promedio de cómputo del backend supera el **50% de su límite solicitado** (`requests: cpu: 100m`), Kubernetes gatilla la replicación elástica. El umbral se parametrizó con un mínimo de **1 Pod** y un techo máximo de **3 Pods** concurrentes distribuidos automáticamente entre los nodos EC2.
 * **Ciclo de Vida (Probes de Salud):**
   * `Readiness Probe`: Monitorea el endpoint `/api/health` en el puerto `3001` con un retardo inicial de 5 segundos. Evita que el tráfico de los usuarios se envíe a un Pod que aún se está inicializando.
@@ -35,15 +41,23 @@ Toda la infraestructura de red fue provista mediante la plantilla de AWS CloudFo
 ```text
 ├── .github/
 │   └── workflows/
-│       └── deployment.yml          # Pipeline de CI/CD automatizado en GitHub Actions
+│       └── deployment.yml      # Pipeline de CI/CD automatizado en GitHub Actions
 ├── backend/
-│   ├── app.js                  # Lógica principal de la API REST
-│   ├── package.json            # Dependencias del proyecto y scripts de ejecución
-│   └── Dockerfile              # Instrucciones de compilación de la imagen Docker
+│   ├── server.js               # Lógica principal y punto de entrada de la API REST
+│   ├── package.json            # Dependencias del proyecto y scripts de arranque
+│   └── Dockerfile              # Instrucciones de compilación para la imagen de la API
+├── db/
+│   ├── init.sql                # Script de inicialización de tablas del catálogo
+│   └── Dockerfile              # Instrucciones para la imagen personalizada de MySQL
 ├── k8s/
-│   ├── backend-deployment.yaml # Definición del deployment y especificación de Pods
+│   ├── backend-deployment.yaml # Definición de los Pods y réplicas de la API Backend
+│   ├── backend-hpa.yaml        # Configuración de autoescalado horizontal por CPU
+│   ├── backend-service.yaml    # Servicio de red interno tipo ClusterIP para la API
 │   ├── mysql-deployment.yaml   # Despliegue del motor de base de datos MySQL
-│   ├── frontend-hpa.yaml       # Configuración del autoescalado elástico del backend
+│   ├── mysql-secret.yaml       # Variables encriptadas (password de root de la BD)
+│   ├── mysql-service.yaml      # Servicio de red interno para el motor de datos
 │   └── namespace.yaml          # Aislamiento lógico del entorno ("tienda")
-└── README.md                   # Documentación técnica principal del repositorio
+├── deploy.sh                   # Script de despliegue local/manual de respaldo
+└── README.md                   # Documentación técnica unificada del repositorio
+
 
