@@ -36,13 +36,13 @@ jobs:
         ECR_REPOSITORY: tienda-backend
         IMAGE_TAG: latest
       run: 
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG,
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./backend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     
     - name: Conectar con Cluster EKS
       run: |
-        aws eks update-kubeconfig --name devopseks --region us-east-1,
+        aws eks update-kubeconfig --name devopseks --region us-east-1
 
     
     - name: Aplicar Cambios en Kubernetes
